@@ -17,6 +17,7 @@ class Check_p2p_offers():
         self.asset = asset
         self.bank = bank
         self.result_exchange_rate = []
+        self.request_text = self.get_response()
     
     def get_response(self):
         
@@ -87,8 +88,7 @@ class Check_p2p_offers():
         
         return requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', cookies=cookies, headers=headers, json=json_data).text
     
-    def exchange_rate(self, to_start=None):
-        request_text = self.get_response()
+    def exchange_rate(self, request_text, to_start=None):
         
         word = request_text.find('price":"', to_start) + 8    #indent to price
         
@@ -99,20 +99,23 @@ class Check_p2p_offers():
                 if request_text[word+i] != "\"":   #example: "133.23 '"'<- to last char
                     result_word += request_text[word+i]
                 else:
-                    self.result_exchange_rate.append(result_word)  #add in "your_list"
+                    self.result_exchange_rate.append(result_word)  #add in list with result
                     break
-            self.exchange_rate(word+i)   #recursive from an index that is checked
+            self.exchange_rate(self.request_text ,word+i)   #recursive from an index that is checked
         else:
             pass
     
-    def print_result(self):
-        self.exchange_rate()
-        counter = 1
-        for price in self.result_exchange_rate:
-            print(f'{counter} - {price}')
-            counter += 1
+    def return_result(self):
+        self.exchange_rate(self.request_text)
+        return self.result_exchange_rate
 
 
 if __name__=="__main__":
-    checker = Check_p2p_offers("UAH", "BUSD", "Monobank")
-    checker.print_result()
+    checkMono = Check_p2p_offers("UAH", "BUSD", "Monobank")
+    result_mono = checkMono.return_result()
+    
+    checkPrivat = Check_p2p_offers("UAH", "BUSD", "PrivatBank")
+    result_ptivat = checkPrivat.return_result()
+
+    for i in range(9):
+        print(f'Order {i + 1}: Monobank-{result_mono[i]}\t\t PrivatBank-{result_ptivat[i]}')
