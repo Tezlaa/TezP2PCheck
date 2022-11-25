@@ -1,9 +1,8 @@
+import random
 import requests
 import fake_useragent
-import random
 
 class Check_p2p_offers():
-    
     def __init__(self, fiat, asset, bank):
         """
         fiat-> { "UAH" }
