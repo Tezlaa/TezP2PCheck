@@ -1,6 +1,16 @@
 import random
 import requests
 import fake_useragent
+from colorama import Fore, init, Style
+
+"""Style"""
+r = Fore.RED
+g = Fore.GREEN
+y = Fore.YELLOW
+b = Fore.BLUE
+m = Fore.MAGENTA
+c = Fore.CYAN
+w = Fore.WHITE
 
 class Check_p2p_offers():
     def __init__(self, fiat, asset, bank):
@@ -109,12 +119,68 @@ class Check_p2p_offers():
         return self.result_exchange_rate
 
 
-if __name__=="__main__":
-    checkMono = Check_p2p_offers("UAH", "BUSD", "Monobank")
-    result_mono = checkMono.return_result()
+def write_available_chouice(select):
+    """
+    write fiat--> 'fiat'
+    write asset--> 'asset'
+    write bank--> 'bank'
+    """
     
-    checkPrivat = Check_p2p_offers("UAH", "BUSD", "PrivatBank")
-    result_ptivat = checkPrivat.return_result()
+    if select == "fiat":
+        
+        for i in range(len(available_data["fiat"])):
+            print(f'{i+1}-{available_data["fiat"][i]}', end=" ")
+            
+        print("\n")
+    if select == "asset":
+        
+        for i in range(len(available_data["asset"])):
+            print(f'{i+1}-{available_data["asset"][i]}', end=" ")
+            
+        print("\n")
+    if select == "bank":
+        
+        for i in range(len(available_data["bank"])):
+            print(f'{i+1}-{available_data["bank"][i]}', end=" ")
+            
+        print("\n")
+    
 
-    for i in range(9):
-        print(f'Order {i + 1}: Monobank-{result_mono[i]}\t\t PrivatBank-{result_ptivat[i]}')
+def user_сhoice():
+    
+    select_fiat = int(input(f'{write_available_chouice("fiat")}Select the fiat to be parsed: ')) - 1
+    
+    select_asset = int(input(f'{write_available_chouice("asset")}Select the asset to be parsed: ')) - 1
+    
+    select_bank = int(input(f'{write_available_chouice("bank")}Select the bank to be parsed: ')) - 1 
+    
+    selected = [available_data['fiat'][select_fiat], available_data['asset'][select_asset], available_data['bank'][select_bank]]
+    return selected     #returns a list with the selected 
+    
+    
+ 
+if __name__=="__main__":
+    print(Style.BRIGHT)
+    
+    available_data = {
+        "fiat" : ["UAH", ], 
+        "asset": ["USDT", "BTC", "BUSD", "BNB", "ETH", "UAH", "SHIB", ], 
+        "bank" : ["Monobank", "PUMBBank", "PrivatBank", "ABank", "izibank", "Sportbank", "Oschadbank", ], 
+    }
+    
+    print('''
+╭
+████████╗███████╗███████╗██████╗░██████╗░██████╗░░█████╗░██╗░░██╗███████╗░█████╗░██╗░░██╗
+╚══██╔══╝██╔════╝╚════██║██╔══██╗╚════██╗██╔══██╗██╔══██╗██║░░██║██╔════╝██╔══██╗██║░██╔╝
+░░░██║░░░█████╗░░░░███╔═╝██████╔╝░░███╔═╝██████╔╝██║░░╚═╝███████║█████╗░░██║░░╚═╝█████═╝░
+░░░██║░░░██╔══╝░░██╔══╝░░██╔═══╝░██╔══╝░░██╔═══╝░██║░░██╗██╔══██║██╔══╝░░██║░░██╗██╔═██╗░
+░░░██║░░░███████╗███████╗██║░░░░░███████╗██║░░░░░╚█████╔╝██║░░██║███████╗╚█████╔╝██║░╚██╗
+░░░╚═╝░░░╚══════╝╚══════╝╚═╝░░░░░╚══════╝╚═╝░░░░░░╚════╝░╚═╝░░╚═╝╚══════╝░╚════╝░╚═╝░░╚═╝\n\n\n\n
+''')
+
+    user_selected = user_сhoice() 
+    
+    checker = Check_p2p_offers(user_selected[0], user_selected[1], user_selected[2])
+    
+    print(checker.return_result())
+    
