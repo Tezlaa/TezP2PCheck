@@ -4,13 +4,13 @@ import fake_useragent
 from colorama import Fore, init, Style
 
 """Style"""
-r = Fore.RED
-g = Fore.GREEN
-y = Fore.YELLOW
-b = Fore.BLUE
-m = Fore.MAGENTA
-c = Fore.CYAN
-w = Fore.WHITE
+R = Fore.RED
+G = Fore.GREEN
+B = Fore.BLUE
+W = Fore.WHITE
+Y = Fore.YELLOW
+M = Fore.MAGENTA
+C = Fore.CYAN
 
 class Check_p2p_offers():
     def __init__(self, fiat, asset, bank):
@@ -125,38 +125,53 @@ def write_available_chouice(select):
     write asset--> 'asset'
     write bank--> 'bank'
     """
+    global g
     
     if select == "fiat":
+        print("\n")
         
         for i in range(len(available_data["fiat"])):
-            print(f'{i+1}-{available_data["fiat"][i]}', end=" ")
+            print(f'{i+1}-{G + available_data["fiat"][i] + W}', end=" ")
             
         print("\n")
     if select == "asset":
+        print("\n")
         
         for i in range(len(available_data["asset"])):
-            print(f'{i+1}-{available_data["asset"][i]}', end=" ")
+            print(f'{i+1}-{G + available_data["asset"][i] + W}', end=" ")
             
         print("\n")
     if select == "bank":
+        print("\n")
         
         for i in range(len(available_data["bank"])):
-            print(f'{i+1}-{available_data["bank"][i]}', end=" ")
+            print(f'{i+1}-{G + available_data["bank"][i] + W}', end=" ")
             
         print("\n")
     
 
 def user_сhoice():
+    write_available_chouice("fiat")
+    select_fiat = int(input("Select the fiat to be parsed: ")) - 1
     
-    select_fiat = int(input(f'{write_available_chouice("fiat")}Select the fiat to be parsed: ')) - 1
+    write_available_chouice("asset")
+    select_asset = int(input("Select the asset to be parsed: ")) - 1
     
-    select_asset = int(input(f'{write_available_chouice("asset")}Select the asset to be parsed: ')) - 1
+    write_available_chouice("bank")
+    select_bank = int(input("Select the bank to be parsed: ")) - 1 
     
-    select_bank = int(input(f'{write_available_chouice("bank")}Select the bank to be parsed: ')) - 1 
-    
-    selected = [available_data['fiat'][select_fiat], available_data['asset'][select_asset], available_data['bank'][select_bank]]
+    selected = [available_data["fiat"][select_fiat], available_data["asset"][select_asset], available_data["bank"][select_bank]]    #place the selected item on the list to return
     return selected     #returns a list with the selected 
     
+
+def print_offers(list_with_result, list_with_data):
+    fiat  = list_with_data[0]
+    asset = list_with_data[1]
+    bank  = list_with_data[2]
+    
+    print("\n")
+    for i in range(len(list_with_result)):
+        print(f'{i+1} Offer: {G}1-{asset + W} = {M + list_with_result[i]} {G + fiat + W}')
     
  
 if __name__=="__main__":
@@ -168,19 +183,20 @@ if __name__=="__main__":
         "bank" : ["Monobank", "PUMBBank", "PrivatBank", "ABank", "izibank", "Sportbank", "Oschadbank", ], 
     }
     
-    print('''
+    print(f'''{Y}
 ╭
 ████████╗███████╗███████╗██████╗░██████╗░██████╗░░█████╗░██╗░░██╗███████╗░█████╗░██╗░░██╗
 ╚══██╔══╝██╔════╝╚════██║██╔══██╗╚════██╗██╔══██╗██╔══██╗██║░░██║██╔════╝██╔══██╗██║░██╔╝
 ░░░██║░░░█████╗░░░░███╔═╝██████╔╝░░███╔═╝██████╔╝██║░░╚═╝███████║█████╗░░██║░░╚═╝█████═╝░
 ░░░██║░░░██╔══╝░░██╔══╝░░██╔═══╝░██╔══╝░░██╔═══╝░██║░░██╗██╔══██║██╔══╝░░██║░░██╗██╔═██╗░
 ░░░██║░░░███████╗███████╗██║░░░░░███████╗██║░░░░░╚█████╔╝██║░░██║███████╗╚█████╔╝██║░╚██╗
-░░░╚═╝░░░╚══════╝╚══════╝╚═╝░░░░░╚══════╝╚═╝░░░░░░╚════╝░╚═╝░░╚═╝╚══════╝░╚════╝░╚═╝░░╚═╝\n\n\n\n
-''')
+░░░╚═╝░░░╚══════╝╚══════╝╚═╝░░░░░╚══════╝╚═╝░░░░░░╚════╝░╚═╝░░╚═╝╚══════╝░╚════╝░╚═╝░░╚═╝\n
+{W}''')
 
     user_selected = user_сhoice() 
     
-    checker = Check_p2p_offers(user_selected[0], user_selected[1], user_selected[2])
+    parsing = Check_p2p_offers(user_selected[0], user_selected[1], user_selected[2]) #put all the selected items into a class for parsing 
     
-    print(checker.return_result())
+    print_offers(parsing.return_result(), user_selected)
     
+    input()
