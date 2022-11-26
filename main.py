@@ -1,7 +1,6 @@
-import random
 import requests
 import fake_useragent
-from colorama import Fore, init, Style
+from colorama import Fore, Style
 
 """Style"""
 R = Fore.RED
@@ -13,19 +12,22 @@ M = Fore.MAGENTA
 C = Fore.CYAN
 
 class Check_p2p_offers():
-    def __init__(self, fiat, asset, bank):
+    def __init__(self, action, fiat, asset, bank):
         """
+        action-> { "BUY", "SELL" }
+        
         fiat-> { "UAH" }
         
         asset-> { "USDT", "BTC", "BUSD", "BNB", "ETH", "UAH", "SHIB" }
         
         bank-> { "Monobank", "PUMBBank", "PrivatBank", "ABank", "izibank", "Sportbank", "Oschadbank" }
         """
-        
+        self.action = action
         self.fiat = fiat
         self.asset = asset
         self.bank = bank
         self.result_exchange_rate = []
+        self.counter = 0
         self.request_text = self.get_response()
     
     def get_response(self):
@@ -92,27 +94,48 @@ class Check_p2p_offers():
             'publisherType': None,
             'asset': self.asset,
             'fiat': self.fiat,
-            'tradeType': 'BUY',
+            'tradeType': self.action,
         }
         
         return requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', cookies=cookies, headers=headers, json=json_data).text
     
-    def exchange_rate(self, request_text, to_start=None):
+    def exchange_rate(self, request_text, to_start_word=None, to_start_min_trans=None, to_start_max_trans=None):
         
-        word = request_text.find('price":"', to_start) + 8    #indent to price
+        word = request_text.find('price":"', to_start_word) + 8    #indent to price
+        min_trans = request_text.find('minSingleTransAmount":"', to_start_min_trans) + 23    #indent to max trans this account
+        max_trans = request_text.find('maxSingleTransAmount":"', to_start_max_trans) + 23
         
-        result_word=""  #to add characters
+        result_word      = ""      #to add characters
+        result_max_trans = "" 
+        result_min_trans = ""
         
-        if len(self.result_exchange_rate) < 9 :   #how many offers
+        if self.counter < 9 :   #how many offers
             for i in range(100):
-                if request_text[word+i] != "\"":   #example: "133.23 '"'<- to last char
-                    result_word += request_text[word+i]
-                else:
-                    self.result_exchange_rate.append(result_word)  #add in list with result
+                if request_text[word + i] != '"':   #example: "133.23 '"'<- to last char
+                    to_start_for_word = word + i 
+                    result_word += request_text[to_start_for_word]
+                else:     
                     break
-            self.exchange_rate(self.request_text ,word+i)   #recursive from an index that is checked
-        else:
-            pass
+            for i in range(100):
+                if request_text[min_trans + i] != '"':
+                    to_start_for_mintr = min_trans + i
+                    result_min_trans += request_text[to_start_for_mintr]
+                else:
+                    break
+            for i in range(100):
+                if request_text[max_trans + i] != '"':
+                    to_start_for_maxtr = max_trans + i
+                    result_max_trans += request_text[to_start_for_maxtr]
+                else:
+                    break
+            
+            self.counter += 1        
+            
+            self.result_exchange_rate.append([[result_word], [result_min_trans], [result_max_trans]])   #add in list with result     
+            
+            self.exchange_rate(self.request_text ,to_start_for_word, to_start_for_mintr, to_start_for_maxtr)   #recursive from an index that is checked
+
+        
     
     def return_result(self):
         self.exchange_rate(self.request_text)
@@ -121,11 +144,25 @@ class Check_p2p_offers():
 
 def write_available_chouice(select):
     """
+    write action(buy or sell)--> 'action'
+    
     write fiat--> 'fiat'
+    
     write asset--> 'asset'
+    
     write bank--> 'bank'
     """
-    global g
+    
+    if select == "action":
+        print("\n")
+        
+        for i in range(len(available_data["action"])):
+            if i == 0:
+                print(f'{1}-{G + available_data["action"][i] + W}', end=" ")
+            else:
+                print(f'{2}-{R + available_data["action"][i] + W}', end=" ")
+            
+        print("\n")
     
     if select == "fiat":
         print("\n")
@@ -151,6 +188,10 @@ def write_available_chouice(select):
     
 
 def user_сhoice():
+    
+    write_available_chouice("action")
+    select_action = int(input("Select an action: ")) - 1
+    
     write_available_chouice("fiat")
     select_fiat = int(input("Select the fiat to be parsed: ")) - 1
     
@@ -160,27 +201,31 @@ def user_сhoice():
     write_available_chouice("bank")
     select_bank = int(input("Select the bank to be parsed: ")) - 1 
     
-    selected = [available_data["fiat"][select_fiat], available_data["asset"][select_asset], available_data["bank"][select_bank]]    #place the selected item on the list to return
+    selected = [available_data["action"][select_action], available_data["fiat"][select_fiat], available_data["asset"][select_asset], available_data["bank"][select_bank]]    #place the selected item on the list to return
     return selected     #returns a list with the selected 
     
 
 def print_offers(list_with_result, list_with_data):
-    fiat  = list_with_data[0]
-    asset = list_with_data[1]
-    bank  = list_with_data[2]
+    action  = list_with_data[0]
+    fiat = list_with_data[1]
+    asset  = list_with_data[2]
+    bank = list_with_data[3]
     
     print("\n")
     for i in range(len(list_with_result)):
-        print(f'{i+1} Offer: {G}1-{asset + W} = {M + list_with_result[i]} {G + fiat + W}')
-    
+        if action == "BUY":
+            print(f'{i+1}) {G + action + W} Offer: {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W}   | {", ".join(map(str, list_with_result[i][1]))} {G + fiat + W}  - {", ".join(map(str, list_with_result[i][2]))} {G + fiat + W}')
+        else:
+            print(f'{i+1}) {R + action + W} Offer: {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W}   | {", ".join(map(str, list_with_result[i][1]))} {G + fiat + W}  - {", ".join(map(str, list_with_result[i][2]))} {G + fiat + W}')
  
 if __name__=="__main__":
     print(Style.BRIGHT)
     
     available_data = {
-        "fiat" : ["UAH", ], 
-        "asset": ["USDT", "BTC", "BUSD", "BNB", "ETH", "UAH", "SHIB", ], 
-        "bank" : ["Monobank", "PUMBBank", "PrivatBank", "ABank", "izibank", "Sportbank", "Oschadbank", ], 
+        "action": ["BUY", "SELL"],
+         "fiat" : ["UAH", ], 
+         "asset": ["USDT", "BTC", "BUSD", "BNB", "ETH", "UAH", "SHIB", ], 
+         "bank" : ["Monobank", "PUMBBank", "PrivatBank", "ABank", "izibank", "Sportbank", "Oschadbank", ], 
     }
     
     print(f'''{Y}
@@ -195,8 +240,8 @@ if __name__=="__main__":
 
     user_selected = user_сhoice() 
     
-    parsing = Check_p2p_offers(user_selected[0], user_selected[1], user_selected[2]) #put all the selected items into a class for parsing 
-    
+    parsing = Check_p2p_offers(user_selected[0], user_selected[1], user_selected[2], user_selected[3]) #put all the selected items into a class for parsing 
+
     print_offers(parsing.return_result(), user_selected)
     
     input()
