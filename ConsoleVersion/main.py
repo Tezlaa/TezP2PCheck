@@ -84,7 +84,7 @@ class Check_p2p_offers():
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'same-origin',
-            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+            'user-agent': fake_useragent.UserAgent().random,
             'x-trace-id': 'ecd92505-6ca3-4ddc-a011-fc6b16624512',
             'x-ui-request-trace': 'ecd92505-6ca3-4ddc-a011-fc6b16624512',
         }
@@ -104,10 +104,9 @@ class Check_p2p_offers():
         }
         
 
-        data_request =  requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', cookies=cookies, headers=headers, json=json_data).text
-        
         print(G + S_n + "\n\n Loading..." + W + S_b); time.sleep(1.0) #Processing a request
-        return data_request
+        return requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', cookies=cookies, headers=headers, json=json_data).text
+
         
     def exchange_rate(self, request_text, to_start_word=None, to_start_min_trans=None, to_start_max_trans=None):
         
@@ -263,4 +262,4 @@ if __name__=="__main__":
         
         print_offers(parsing.return_result(), user_selected)
         
-        input(f'\n\n{R}  EXIT IN MENU {Bl}(type any kay){W}')
+        input(f'\n\n{R}  EXIT IN MENU {Bl}(type any key){W}')
