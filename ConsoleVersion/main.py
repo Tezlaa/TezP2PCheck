@@ -295,7 +295,7 @@ def get_bank_for_currency(fiat):
     
     search = True
     while search == True:
-        find_with_response = response.find('"tradeMethodName":"', index_last_char) + 19
+        find_with_response = response.find('"identifier":"', index_last_char) + 14
         
         word_with_bank = ""
         
@@ -308,7 +308,7 @@ def get_bank_for_currency(fiat):
                 
                 break
             
-        if (banks[-1] == "message"):
+        if (banks[-1] == "00"):
             banks.pop(-1)
         
             search = False
@@ -361,10 +361,30 @@ def write_available_chouice(select):
         print("\n")
     if select == "bank":
         print("_" * 96 + "\n")
+        G_2 = Fore.GREEN     #Style for change colors
+        
+        index1 = 0
+        index2 = 1
+        
+        count_indent = 45
         
         for i in range(len(available_data["bank"])):
-            print(f' {i+1}-{G + available_data["bank"][i] + W}', end="\n")
             
+            number_of_spaces = (count_indent - len(available_data['bank'][index1]))
+            
+            print(f'{index1+1}-{G_2 + available_data["bank"][index1] + W}', end=(" " * number_of_spaces))
+            print(f'{index2+1}-{G_2 + available_data["bank"][index2] + W}')
+
+            index1 += 2
+            index2 += 2    
+            
+            if index1 == 10 or index1 == 100 or index1 == 1000:
+                G_2 = G_2 + S_n     #style change after 10 
+                count_indent -= 1
+                
+            if index2 >= len(available_data['bank']):
+                break 
+        
         print("\n")
 
 def user_сhoice():
