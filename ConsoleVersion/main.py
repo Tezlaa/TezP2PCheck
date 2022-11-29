@@ -14,7 +14,7 @@ W = Fore.WHITE
 Y = Fore.YELLOW
 M = Fore.MAGENTA
 C = Fore.CYAN
-Bl= Fore.BLACK
+Bl= Fore.RESET
 
 S_b = Style.BRIGHT
 S_n = Style.NORMAL
@@ -110,31 +110,39 @@ class Check_p2p_offers():
         result_min_trans = ""
         
         if self.counter < 9 :   #how many offers
-            for i in range(100):
-                if request_text[word + i] != '"':   #example: "133.23 '"'<- to last char
-                    to_start_for_word = word + i 
-                    result_word += request_text[to_start_for_word]
-                else:     
-                    break
-            for i in range(100):
-                if request_text[min_trans + i] != '.':
-                    to_start_for_mintr = min_trans + i
-                    result_min_trans += request_text[to_start_for_mintr]
-                else:
-                    break
-            for i in range(100):
-                if request_text[max_trans + i] != '.':
-                    to_start_for_maxtr = max_trans + i
-                    result_max_trans += request_text[to_start_for_maxtr]
-                else:
-                    break
-            
-            self.counter += 1        
-            
-            self.result_exchange_rate.append([[result_word], [result_min_trans], [result_max_trans]])   #add in list with result     
-            
-            self.exchange_rate(self.request_text ,to_start_for_word, to_start_for_mintr, to_start_for_maxtr)   #recursive from an index that is checked
-
+            if request_text[word+1] != '"': 
+                for i in range(100):
+                    if request_text[word + i] != '"':   #example: "133.23 '"'<- to last char
+                        to_start_for_word = word + i 
+                        result_word += request_text[to_start_for_word]
+                    else:
+                        if request_text[word + i] == None:
+                            result_word = "None"
+                        break
+                for i in range(100):
+                    if request_text[min_trans + i] != '.':
+                        to_start_for_mintr = min_trans + i
+                        result_min_trans += request_text[to_start_for_mintr]
+                    else:
+                        if request_text[min_trans + i] == "a":
+                            result_min_trans = 0 
+                        break
+                for i in range(100):
+                    if request_text[max_trans + i] != '.':
+                        to_start_for_maxtr = max_trans + i
+                        result_max_trans += request_text[to_start_for_maxtr]
+                    else:
+                        if request_text[max_trans + i] == "a":
+                            result_max_trans = 0 
+                        break
+                self.counter += 1        
+                
+                self.result_exchange_rate.append([[result_word], [result_min_trans], [result_max_trans]])   #add in list with result     
+                
+                self.exchange_rate(self.request_text ,to_start_for_word, to_start_for_mintr, to_start_for_maxtr)   #recursive from an index that is checked
+            else:
+                self.counter = 9
+                return
         
     def return_result(self):
         self.exchange_rate(self.request_text)
@@ -372,20 +380,28 @@ def write_available_chouice(select):
             
             number_of_spaces = (count_indent - len(available_data['bank'][index1]))
             
-            print(f'{index1+1}-{G_2 + available_data["bank"][index1] + W}', end=(" " * number_of_spaces))
-            print(f'{index2+1}-{G_2 + available_data["bank"][index2] + W}')
+            print(f' {index1+1}-{G_2 + available_data["bank"][index1] + W}', end=(" " * number_of_spaces))
+            print(f' {index2+1}-{G_2 + available_data["bank"][index2] + W}')
 
             index1 += 2
             index2 += 2    
             
             if index1 == 10 or index1 == 100 or index1 == 1000:
                 G_2 = G_2 + S_n     #style change after 10 
+                
+                print(f'{Y}{S_b}{"-" * 96}')
+                quation = int(input(f'{S_b}{G} 1{W}-More banks\t{G}0{W}-Select\n {G}>>>{W}'))
+                if quation == 0:
+                    return
+                else:
+                    print(f'{S_n}{G}\nLoading...\n{W}\n'); time.sleep(1)    
+                
                 count_indent -= 1
                 
             if index2 >= len(available_data['bank']):
                 break 
         
-        print("\n")
+        print("\n", S_b)
 
 def user_сhoice():
     
@@ -414,13 +430,17 @@ def print_offers(list_with_result, list_with_data):
     
     os.system('cls||clear')
     
+    if len(list_with_result) == 0:
+        print(f'{R}NO ORDERS{W}')
+        return
+        
     print(M + "\n" + "_" * 96 + "\n\n" + W)
     
     for i in range(len(list_with_result)):
         if action == "BUY":
-            print(f' {S_n}{i + 1}){S_b} {G + action + W} Offer: {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
+            print(f' {S_n}{i + 1}){S_b} {G + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
         else:
-            print(f' {S_n}{i + 1}){S_b} {R + action + W} Offer: {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {", ".join(map(str, list_with_result[i][2]))} {G + fiat + W + S_b}')
+            print(f' {S_n}{i + 1}){S_b} {R + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {", ".join(map(str, list_with_result[i][2]))} {G + fiat + W + S_b}')
     
     print(M + "\n" + "_" * 96 + W)
   
