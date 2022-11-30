@@ -322,8 +322,7 @@ def get_bank_for_currency(fiat):
             search = False
 
     return banks
-
-        
+       
 def write_available_chouice(select):
     """
     write action(buy or sell)--> 'action'
