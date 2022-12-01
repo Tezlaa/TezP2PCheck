@@ -415,43 +415,60 @@ def write_available_chouice(select):
 
 def user_сhoice():
     
-    for cycle in range(10):
+    while True:
         write_available_chouice("action")
-        select_action = int(input(" Select an action: ")) - 1
-        if select_action <= len(available_data['action']):
-            break
-        else:
+        try: 
+            select_action = int(input(" Select an action: ")) - 1
+            if select_action <= len(available_data['action'])-1 and select_action >= 0:
+                break
+            else:
+                print(f'{R} ERORR{W}'); time.sleep(0.70)
+        except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
         
-    for cycle in range(10):
+    while True:
         write_available_chouice("fiat")
-        select_fiat = int(input(" Select the fiat to be parsed: ")) - 1
-        if select_fiat <= len(available_data["fiat"]):
-                break
-        else:
+        try:
+            select_fiat = int(input(" Select the fiat to be parsed: ")) - 1
+            if select_fiat <= len(available_data["fiat"])-1 and select_fiat >= 0:
+                    break
+            else:
+                print(f'{R} ERORR{W}'); time.sleep(0.70)
+        except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
     
     available_data['asset'] = get_available_assets(available_data["fiat"][select_fiat])  #adding a availavle_data of asset selections
     available_data['bank'] = get_bank_for_currency(available_data['fiat'][select_fiat])  #adding a bank of fiat selections
     
-    for cycle in range(10):
+    while True:
         write_available_chouice("asset")
-        select_asset = int(input(" Select the asset to be parsed: ")) - 1
-        if select_asset <= len(available_data["asset"]):
-                break
-        else:
+        try:
+            select_asset = int(input(" Select the asset to be parsed: ")) - 1
+            if select_asset <= len(available_data["asset"])-1 and select_asset >= 0:
+                    break
+            else:
+                print(f'{R} ERORR{W}'); time.sleep(0.70)
+        except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
             
-    for cycle in range(10):
+    while True:
         for_check_on_digit = write_available_chouice("bank")
-        if for_check_on_digit == None:
-            select_bank = int(input(" Select the bank to be parsed: ")) - 1 
-        else:
-            select_bank = for_check_on_digit
-        if select_bank <= len(available_data["bank"]):
-                break
-        else:
+        try:
+            if for_check_on_digit == None:
+                select_bank = int(input(" Select the bank to be parsed: ")) - 1
+                if select_bank <= len(available_data["bank"])-1 and select_bank >= 0:
+                        break
+                else:
+                    print(f'{R} ERORR{W}'); time.sleep(0.70)
+            else:
+                select_bank = for_check_on_digit
+                if select_bank <= len(available_data["bank"])-1 and select_bank >= 0:
+                        break
+                else:
+                    print(f'{R} ERORR{W}'); time.sleep(0.70)
+        except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
+            
         
     selected = [available_data["action"][select_action], available_data["fiat"][select_fiat], available_data["asset"][select_asset], available_data["bank"][select_bank]]    #place the selected item on the list to return
     return selected     #returns a list with the selected 
