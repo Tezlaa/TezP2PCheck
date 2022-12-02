@@ -390,8 +390,8 @@ def write_available_chouice(select):
             
             number_of_spaces = (count_indent - len(available_data['bank'][index1]))
             
-            print(f' {index1+1}-{G_2 + available_data["bank"][index1] + W}', end=(" " * number_of_spaces))
-            print(f' {index2+1}-{G_2 + available_data["bank"][index2] + W}')
+            print(f'{G_2} {W}{index1+1}-{G_2 + available_data["bank"][index1] + W}', end=(" " * number_of_spaces))
+            print(f'{G_2} {W}{index2+1}-{G_2 + available_data["bank"][index2] + W}')
 
             index1 += 2
             index2 += 2    
@@ -400,11 +400,11 @@ def write_available_chouice(select):
                 G_2 = G_2 + S_n     #style change after 10 
                 
                 print(f'{Y}{S_b}{"-" * 96}')
-                quation = int(input(f'{S_b}{G} 00{W}-More banks\t\n {G}>>> {W}'))
-                if quation != 00:
-                    return quation
+                quation = input(f'{G}\n 00{W}-{S_n}More banks\t\n\n {S_b}{G}>>> {W}')
+                if quation != "00":
+                    return int(quation) - 1
                 else:
-                    print(f'{S_b}{G}\nLoading...\n{W}'); time.sleep(1)    
+                    print(f'{S_b}{G}\n\nLoading...\n{W}'); time.sleep(1)    
                 
                 count_indent -= 1
                 
@@ -415,6 +415,7 @@ def write_available_chouice(select):
 
 def user_сhoice():
     
+    #action
     while True:
         write_available_chouice("action")
         try: 
@@ -425,7 +426,8 @@ def user_сhoice():
                 print(f'{R} ERORR{W}'); time.sleep(0.70)
         except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
-        
+    
+    #fiat   
     while True:
         write_available_chouice("fiat")
         try:
@@ -440,6 +442,7 @@ def user_сhoice():
     available_data['asset'] = get_available_assets(available_data["fiat"][select_fiat])  #adding a availavle_data of asset selections
     available_data['bank'] = get_bank_for_currency(available_data['fiat'][select_fiat])  #adding a bank of fiat selections
     
+    #asset
     while True:
         write_available_chouice("asset")
         try:
@@ -450,7 +453,8 @@ def user_сhoice():
                 print(f'{R} ERORR{W}'); time.sleep(0.70)
         except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
-            
+    
+    #bank     
     while True:
         for_check_on_digit = write_available_chouice("bank")
         try:
