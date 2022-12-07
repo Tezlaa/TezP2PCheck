@@ -29,6 +29,7 @@ class Check_p2p_offers():
         self.result_exchange_rate = []
         self.request_text = self.get_response()
     
+    
     def get_response(self):
         
         cookies = {
@@ -113,7 +114,6 @@ class Check_p2p_offers():
     def return_result(self):
         self.exchange_rate(self.request_text)
         return self.result_exchange_rate
-
 
 def get_available_fiat():
     
