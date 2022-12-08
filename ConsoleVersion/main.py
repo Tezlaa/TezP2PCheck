@@ -4,33 +4,79 @@ import fake_useragent
 from colorama import Fore, Style, init
 
 init()
-os.system("mode con cols=96 lines=60")
+# os.system("mode con cols=96 lines=60")
 
 """Style"""
-R = Fore.RED
-G = Fore.GREEN
-B = Fore.BLUE
-W = Fore.WHITE
-Y = Fore.YELLOW
-M = Fore.MAGENTA
-C = Fore.CYAN
-Bl= Fore.RESET
+R = '\x1b[31m'
+G = '\x1b[32m'
+B = '\x1b[34m'
+W = '\x1b[37m'
+Y = '\x1b[33m'
+M = '\x1b[35m'
+C = '\x1b[36m'
+Bl= '\x1b[39m'
 
-S_b = Style.BRIGHT
-S_n = Style.NORMAL
+S_b = '\x1b[1m'
+S_n = '\x1b[22m'
 
-class Check_p2p_offers():
-    def __init__(self, action, fiat, asset, bank):
+class P2parser:
+    def __init__(self):
+        self.available_data = {
+            "action": ["BUY", "SELL"],
+            "fiat" : None, 
+            "asset": None, 
+            "bank" : None, 
+        }
+        
+    def all_fiat(self):
+        
+        data_fiat = self.__list_with_data('fiat')
+        
+        cookies = data_fiat[0]
+        headers = data_fiat[1]
+        
+        response = requests.get('https://p2p.binance.com/bapi/fiat/v1/public/fiatpayment/menu/currency', cookies=cookies, headers=headers)
+        
+        response_json = response.json()
+        
+        favorite_currency = ["USD", "EUR", "UAH", "RUB", "JPY", "CNY", "GBP"]
+        
+        result_fiat = []
+        
+        temp = ""
+
+        for item in response_json["data"]["currencyList"]:
+            if item["name"] in favorite_currency:
+                for f_c_i in range(len(favorite_currency)):
+                    if favorite_currency[f_c_i] == item["name"]:
+                        
+                        """Sorted"""
+                        try:
+                            temp = result_fiat[f_c_i]
+                            result_fiat.pop(f_c_i)
+                            result_fiat.insert(f_c_i, item["name"])
+                            result_fiat.append(temp)
+                            break
+                        except IndexError:
+                            result_fiat.insert(f_c_i, item["name"])
+            else:
+                result_fiat.append(item["name"])
+        
+        self.available_data["fiat"] =  result_fiat 
+        
+        return self.available_data["fiat"]   
+    
+    @classmethod
+    def __list_with_data(self, method, action="BUY", fiat="UAH", asset="USDT", bank="Monobank"):
+        """method --> 'fiat', 'bank', """
+        
+        self.method = method
+        
         self.action = action
         self.fiat = fiat
         self.asset = asset
         self.bank = bank
         
-        self.result_exchange_rate = []
-        self.request_text = self.get_response()
-    
-    
-    def get_response(self):
         
         cookies = {
             'cid': 'NVFN3uqS',
@@ -85,9 +131,7 @@ class Check_p2p_offers():
             'proMerchantAds': False,
             'page': 1,
             'rows': 10,
-            'payTypes': [
-                self.bank,
-            ],
+            'payTypes': [self.bank, ],
             'countries': [],
             'publisherType': None,
             'asset': self.asset,
@@ -95,25 +139,8 @@ class Check_p2p_offers():
             'tradeType': self.action,
         }
         
-
-        print(G + S_n + "\n\n Loading..." + W + S_b); time.sleep(1.0) #Processing a request
-        return requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', cookies=cookies, headers=headers, json=json_data)
-        
-        
-    def exchange_rate(self, request):
-        response_json = request.json()["data"]
-
-        self_result_exchange_rate = []
-
-        for data in response_json:
-            self.result_exchange_rate.append([[data["adv"]["price"]], [data["adv"]["minSingleTransAmount"]], [data["adv"]["dynamicMaxSingleTransAmount"]]])
-        
-        return
-   
-        
-    def return_result(self):
-        self.exchange_rate(self.request_text)
-        return self.result_exchange_rate
+        if self.method in "fiat":
+            return [cookies, headers]
 
 def get_available_fiat():
     
