@@ -1,9 +1,7 @@
 import time, os
 import requests
 import fake_useragent
-from colorama import Fore, Style, init
 
-init()
 # os.system("mode con cols=96 lines=60")
 
 """Style"""
@@ -23,26 +21,68 @@ class P2parser:
     def __init__(self):
         self.available_data = {
             "action": ["BUY", "SELL"],
-            "fiat" : None, 
+            "fiat" : self.__all_fiat(), 
             "asset": None, 
             "bank" : None, 
         }
+    
+    def parsing_asset(self, fiat):
+        data_asset = self.__list_with_data('asset',self.available_data["action"], fiat)
+        cookies = data_asset[0]
+        headers = data_asset[1]
+        json_data = data_asset[2]
         
-    def all_fiat(self):
+        response = requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/portal/config', cookies=cookies, headers=headers, json=json_data)
+
+        data = response.json()
         
+        result_list = []
+
+        for item in data["data"]["areas"][0]['tradeSides'][0]["assets"]:
+            result_list.append(item["asset"])
+
+        self.available_data["asset"] = result_list
+            
+    def parsing_bank(self, fiat):
+        data_bank = self.__list_with_data('bank', self.available_data["action"], fiat)
+        cookies = data_bank[0]
+        headers = data_bank[1]
+        json_data = data_bank[2]
+        
+        response = requests.post('https://p2p.binance.com/bapi/c2c/v2/public/c2c/adv/filter-conditions', cookies=cookies, headers=headers, json=json_data)
+
+        data_json = response.json()
+
+        banks = []
+
+        for bank in data_json["data"]["tradeMethods"]:
+            banks.append(bank["identifier"])
+            
+        self.available_data["bank"] = banks
+              
+    def set_available_data(self, data, choice):
+        """
+        data  --> 'action', 'fiat', 'asset', 'bank'\n                 
+        choice --> user selection    
+        """
+        for key in self.available_data:
+            if key in data:
+                self.available_data[key] = choice
+         
+    def get_available_data(self):
+        return self.available_data
+    
+    @classmethod
+    def __all_fiat(self):
         data_fiat = self.__list_with_data('fiat')
-        
         cookies = data_fiat[0]
         headers = data_fiat[1]
         
-        response = requests.get('https://p2p.binance.com/bapi/fiat/v1/public/fiatpayment/menu/currency', cookies=cookies, headers=headers)
-        
+        response = requests.get('https://p2p.binance.com/bapi/fiat/v1/public/fiatpayment/menu/currency', cookies=cookies, headers=headers)        
         response_json = response.json()
-        
+
         favorite_currency = ["USD", "EUR", "UAH", "RUB", "JPY", "CNY", "GBP"]
-        
         result_fiat = []
-        
         temp = ""
 
         for item in response_json["data"]["currencyList"]:
@@ -62,13 +102,11 @@ class P2parser:
             else:
                 result_fiat.append(item["name"])
         
-        self.available_data["fiat"] =  result_fiat 
-        
-        return self.available_data["fiat"]   
+        return result_fiat
     
     @classmethod
     def __list_with_data(self, method, action="BUY", fiat="UAH", asset="USDT", bank="Monobank"):
-        """method --> 'fiat', 'bank', """
+        """method --> 'action', 'fiat', 'asset', 'bank',"""
         
         self.method = method
         
@@ -76,8 +114,7 @@ class P2parser:
         self.fiat = fiat
         self.asset = asset
         self.bank = bank
-        
-        
+ 
         cookies = {
             'cid': 'NVFN3uqS',
             'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
@@ -138,230 +175,17 @@ class P2parser:
             'fiat': self.fiat,
             'tradeType': self.action,
         }
+            
         
         if self.method in "fiat":
             return [cookies, headers]
+        elif self.method in "asset":
+            return [cookies, headers, json_data]
+        elif self.method in "bank":
+            return [cookies, headers, json_data]
 
-def get_available_fiat():
-    
-    user = fake_useragent.UserAgent().random
-    
-    cookies = {
-        'cid': 'N6JmU0Mq',
-        'cid': '2v7KWpDw',
-        'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
-        'source': 'organic',
-        'campaign': 'www.google.com',
-        'sys_mob': 'no',
-        '_gcl_au': '1.1.829176743.1667127504',
-        'userPreferredCurrency': 'RUB_USD',
-        'BNC_FV_KEY': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
-        'fiat-prefer-currency': 'EUR',
-        'videoViewed': 'yes',
-        'OptanonAlertBoxClosed': '2022-11-22T15:09:47.696Z',
-        'showBlockMarket': 'false',
-        'sensorsdata2015jssdkcross': '%7B%22distinct_id%22%3A%22184288b0559b58-0490e41e0f4f93-26021f51-2073600-184288b055a9c8%22%2C%22first_id%22%3A%22%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E7%9B%B4%E6%8E%A5%E6%B5%81%E9%87%8F%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC_%E7%9B%B4%E6%8E%A5%E6%89%93%E5%BC%80%22%2C%22%24latest_referrer%22%3A%22%22%7D%2C%22identities%22%3A%22eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTg0Mjg4YjA1NTliNTgtMDQ5MGU0MWUwZjRmOTMtMjYwMjFmNTEtMjA3MzYwMC0xODQyODhiMDU1YTljOCJ9%22%2C%22history_login_id%22%3A%7B%22name%22%3A%22%22%2C%22value%22%3A%22%22%7D%2C%22%24device_id%22%3A%22184288b0559b58-0490e41e0f4f93-26021f51-2073600-184288b055a9c8%22%7D',
-        '_gid': 'GA1.2.157651800.1669556840',
-        'BNC_FV_KEY_EXPIRE': '1669678516781',
-        'common_fiat': 'UAH',
-        'OptanonConsent': 'isGpcEnabled=0&datestamp=Mon+Nov+28+2022+20%3A33%3A00+GMT%2B0200+(%D0%92%D0%BE%D1%81%D1%82%D0%BE%D1%87%D0%BD%D0%B0%D1%8F+%D0%95%D0%B2%D1%80%D0%BE%D0%BF%D0%B0%2C+%D1%81%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D0%BD%D0%BE%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F)&version=6.34.0&isIABGlobal=false&hosts=&consentId=2f1b0d22-fb53-46ac-892a-f79486ffd0f8&interactionCount=2&landingPath=NotLandingPage&groups=C0001%3A1%2CC0003%3A1%2CC0004%3A1%2CC0002%3A1&AwaitingReconsent=false&geolocation=NL%3BNH',
-        '_gat_UA-162512367-1': '1',
-        '_ga_3WP50LGEEC': 'GS1.1.1669660360.17.1.1669660390.30.0.0',
-        '_ga': 'GA1.1.1691793685.1667127501',
-    }
 
-    headers = {
-        'authority': 'p2p.binance.com',
-        'accept': '*/*',
-        'accept-language': 'ru,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
-        'bnc-location': 'null',
-        'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
-        'cache-control': 'no-cache',
-        'clienttype': 'web',
-        'content-type': 'application/json',
-        'csrftoken': 'd41d8cd98f00b204e9800998ecf8427e',
-        'device-info': 'eyJzY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA4MCIsImF2YWlsYWJsZV9zY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA1MCIsInN5c3RlbV92ZXJzaW9uIjoiV2luZG93cyAxMCIsImJyYW5kX21vZGVsIjoidW5rbm93biIsInN5c3RlbV9sYW5nIjoicnUiLCJ0aW1lem9uZSI6IkdNVCsyIiwidGltZXpvbmVPZmZzZXQiOi0xMjAsInVzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTA3LjAuMC4wIFNhZmFyaS81MzcuMzYiLCJsaXN0X3BsdWdpbiI6IlBERiBWaWV3ZXIsQ2hyb21lIFBERiBWaWV3ZXIsQ2hyb21pdW0gUERGIFZpZXdlcixNaWNyb3NvZnQgRWRnZSBQREYgVmlld2VyLFdlYktpdCBidWlsdC1pbiBQREYiLCJjYW52YXNfY29kZSI6IjM2YmI1NmI4Iiwid2ViZ2xfdmVuZG9yIjoiR29vZ2xlIEluYy4gKEFNRCkiLCJ3ZWJnbF9yZW5kZXJlciI6IkFOR0xFIChBTUQsIFJhZGVvbiBSWCA1ODAgU2VyaWVzIERpcmVjdDNEMTEgdnNfNV8wIHBzXzVfMCwgRDNEMTEpIiwiYXVkaW8iOiIxMjQuMDQzNDc1Mjc1MTYwNzQiLCJwbGF0Zm9ybSI6IldpbjMyIiwid2ViX3RpbWV6b25lIjoiQWZyaWNhL1RyaXBvbGkiLCJkZXZpY2VfbmFtZSI6IkNocm9tZSBWMTA3LjAuMC4wIChXaW5kb3dzKSIsImZpbmdlcnByaW50IjoiNzlhZjg4YzZlYzExYzkzY2Y5ODlkNDU3M2RiZDYwY2QiLCJkZXZpY2VfaWQiOiIiLCJyZWxhdGVkX2RldmljZV9pZHMiOiIifQ==',
-        'fvideo-id': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
-        'lang': 'ru',
-        'pragma': 'no-cache',
-        'referer': 'https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=UAH',
-        'sec-ch-ua': '"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': user,
-        'x-trace-id': '2242937d-a8b8-4696-97f2-dfd7758732fb',
-        'x-ui-request-trace': '2242937d-a8b8-4696-97f2-dfd7758732fb',
-    }
-
-    response = requests.get('https://p2p.binance.com/bapi/fiat/v1/public/fiatpayment/menu/currency', cookies=cookies, headers=headers)
-
-    response_json = response.json()
-
-    favorite_currency = ["USD", "EUR", "UAH", "RUB", "JPY", "CNY", "GBP"]
-
-    result_fiat = []
-
-    temp = ""
-
-    for item in response_json["data"]["currencyList"]:
-        if item["name"] in favorite_currency:
-            for f_c_i in range(len(favorite_currency)):
-                if favorite_currency[f_c_i] == item["name"]:
-                    
-                    """Sorted"""
-                    try:
-                        temp = result_fiat[f_c_i]
-                        result_fiat.pop(f_c_i)
-                        result_fiat.insert(f_c_i, item["name"])
-                        result_fiat.append(temp)
-                        break
-                    except IndexError:
-                        result_fiat.insert(f_c_i, item["name"])
-        else:
-            result_fiat.append(item["name"])
-            
-    return result_fiat
-
-def get_bank_for_currency(fiat):
-    
-    user = fake_useragent.UserAgent().random
-    
-    cookies = {
-        'cid': 'SUBOzm5y',
-        'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
-        'source': 'organic',
-        'campaign': 'www.google.com',
-        'sys_mob': 'no',
-        '_gcl_au': '1.1.829176743.1667127504',
-        'userPreferredCurrency': 'RUB_USD',
-        'BNC_FV_KEY': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
-        'fiat-prefer-currency': 'EUR',
-        'videoViewed': 'yes',
-        'OptanonAlertBoxClosed': '2022-11-22T15:09:47.696Z',
-        '_gid': 'GA1.2.157651800.1669556840',
-        'BNC_FV_KEY_EXPIRE': '1669758317689',
-        'showBlockMarket': 'false',
-        'OptanonConsent': 'isGpcEnabled=0&datestamp=Tue+Nov+29+2022+17%3A48%3A13+GMT%2B0200+(%D0%92%D0%BE%D1%81%D1%82%D0%BE%D1%87%D0%BD%D0%B0%D1%8F+%D0%95%D0%B2%D1%80%D0%BE%D0%BF%D0%B0%2C+%D1%81%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D0%BD%D0%BE%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F)&version=6.34.0&isIABGlobal=false&hosts=&consentId=2f1b0d22-fb53-46ac-892a-f79486ffd0f8&interactionCount=2&landingPath=NotLandingPage&groups=C0001%3A1%2CC0003%3A1%2CC0004%3A1%2CC0002%3A1&AwaitingReconsent=false&geolocation=NL%3BNH',
-        '_gat_UA-162512367-1': '1',
-        '_ga_3WP50LGEEC': 'GS1.1.1669736716.19.1.1669736899.52.0.0',
-        'sensorsdata2015jssdkcross': '%7B%22distinct_id%22%3A%22184288b0559b58-0490e41e0f4f93-26021f51-2073600-184288b055a9c8%22%2C%22first_id%22%3A%22%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E7%9B%B4%E6%8E%A5%E6%B5%81%E9%87%8F%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC_%E7%9B%B4%E6%8E%A5%E6%89%93%E5%BC%80%22%2C%22%24latest_referrer%22%3A%22%22%7D%2C%22identities%22%3A%22eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTg0Mjg4YjA1NTliNTgtMDQ5MGU0MWUwZjRmOTMtMjYwMjFmNTEtMjA3MzYwMC0xODQyODhiMDU1YTljOCJ9%22%2C%22history_login_id%22%3A%7B%22name%22%3A%22%22%2C%22value%22%3A%22%22%7D%2C%22%24device_id%22%3A%22184288b0559b58-0490e41e0f4f93-26021f51-2073600-184288b055a9c8%22%7D',
-        'common_fiat': 'RUB',
-        '_ga': 'GA1.2.1691793685.1667127501',
-    }
-
-    headers = {
-        'authority': 'p2p.binance.com',
-        'accept': '*/*',
-        'accept-language': 'ru,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
-        'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
-        'c2ctype': 'c2c_merchant',
-        'cache-control': 'no-cache',
-        'clienttype': 'web',
-        'content-type': 'application/json',
-        'csrftoken': 'd41d8cd98f00b204e9800998ecf8427e',
-        'device-info': 'eyJzY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA4MCIsImF2YWlsYWJsZV9zY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA1MCIsInN5c3RlbV92ZXJzaW9uIjoiV2luZG93cyAxMCIsImJyYW5kX21vZGVsIjoidW5rbm93biIsInN5c3RlbV9sYW5nIjoicnUiLCJ0aW1lem9uZSI6IkdNVCsyIiwidGltZXpvbmVPZmZzZXQiOi0xMjAsInVzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTA3LjAuMC4wIFNhZmFyaS81MzcuMzYiLCJsaXN0X3BsdWdpbiI6IlBERiBWaWV3ZXIsQ2hyb21lIFBERiBWaWV3ZXIsQ2hyb21pdW0gUERGIFZpZXdlcixNaWNyb3NvZnQgRWRnZSBQREYgVmlld2VyLFdlYktpdCBidWlsdC1pbiBQREYiLCJjYW52YXNfY29kZSI6IjM2YmI1NmI4Iiwid2ViZ2xfdmVuZG9yIjoiR29vZ2xlIEluYy4gKEFNRCkiLCJ3ZWJnbF9yZW5kZXJlciI6IkFOR0xFIChBTUQsIFJhZGVvbiBSWCA1ODAgU2VyaWVzIERpcmVjdDNEMTEgdnNfNV8wIHBzXzVfMCwgRDNEMTEpIiwiYXVkaW8iOiIxMjQuMDQzNDc1Mjc1MTYwNzQiLCJwbGF0Zm9ybSI6IldpbjMyIiwid2ViX3RpbWV6b25lIjoiQWZyaWNhL1RyaXBvbGkiLCJkZXZpY2VfbmFtZSI6IkNocm9tZSBWMTA3LjAuMC4wIChXaW5kb3dzKSIsImZpbmdlcnByaW50IjoiNzlhZjg4YzZlYzExYzkzY2Y5ODlkNDU3M2RiZDYwY2QiLCJkZXZpY2VfaWQiOiIiLCJyZWxhdGVkX2RldmljZV9pZHMiOiIifQ==',
-        'fvideo-id': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
-        'lang': 'ru',
-        'origin': 'https://p2p.binance.com',
-        'pragma': 'no-cache',
-        'referer': 'https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=RUB',
-        'sec-ch-ua': '"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': user,
-        'x-trace-id': '1080c5f1-8f51-4ff3-aab7-78911ff5dbaf',
-        'x-ui-request-trace': '1080c5f1-8f51-4ff3-aab7-78911ff5dbaf',
-    }
-
-        
-    data = {
-        'fiat': fiat,
-    }
-    
-    response = requests.post('https://p2p.binance.com/bapi/c2c/v2/public/c2c/adv/filter-conditions', cookies=cookies, headers=headers, json=data)
-
-    data_json = response.json()
-
-    banks = []
-
-    for bank in data_json["data"]["tradeMethods"]:
-        banks.append(bank["identifier"])
-
-    return banks
-
-def get_available_assets(fiat):
-    
-    cookies = {
-        'cid': 'OXaQBiTy',
-        'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
-        'source': 'organic',
-        'campaign': 'www.google.com',
-        'sys_mob': 'no',
-        '_gcl_au': '1.1.829176743.1667127504',
-        'userPreferredCurrency': 'RUB_USD',
-        'BNC_FV_KEY': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
-        'fiat-prefer-currency': 'EUR',
-        'videoViewed': 'yes',
-        'OptanonAlertBoxClosed': '2022-11-22T15:09:47.696Z',
-        '_gid': 'GA1.2.157651800.1669556840',
-        'sensorsdata2015jssdkcross': '%7B%22distinct_id%22%3A%22184288b0559b58-0490e41e0f4f93-26021f51-2073600-184288b055a9c8%22%2C%22first_id%22%3A%22%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E8%87%AA%E7%84%B6%E6%90%9C%E7%B4%A2%E6%B5%81%E9%87%8F%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC%22%2C%22%24latest_referrer%22%3A%22https%3A%2F%2Fwww.google.com%2F%22%7D%2C%22identities%22%3A%22eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTg0Mjg4YjA1NTliNTgtMDQ5MGU0MWUwZjRmOTMtMjYwMjFmNTEtMjA3MzYwMC0xODQyODhiMDU1YTljOCJ9%22%2C%22history_login_id%22%3A%7B%22name%22%3A%22%22%2C%22value%22%3A%22%22%7D%2C%22%24device_id%22%3A%22184288b0559b58-0490e41e0f4f93-26021f51-2073600-184288b055a9c8%22%7D',
-        'BNC_FV_KEY_EXPIRE': '1669871423713',
-        'showBlockMarket': 'false',
-        'common_fiat': 'UAH',
-        '_ga': 'GA1.2.1691793685.1667127501',
-        '_ga_3WP50LGEEC': 'GS1.1.1669849823.26.1.1669849935.60.0.0',
-        'OptanonConsent': 'isGpcEnabled=0&datestamp=Thu+Dec+01+2022+01%3A12%3A18+GMT%2B0200+(%D0%92%D0%BE%D1%81%D1%82%D0%BE%D1%87%D0%BD%D0%B0%D1%8F+%D0%95%D0%B2%D1%80%D0%BE%D0%BF%D0%B0%2C+%D1%81%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D0%BD%D0%BE%D0%B5+%D0%B2%D1%80%D0%B5%D0%BC%D1%8F)&version=6.34.0&isIABGlobal=false&hosts=&consentId=2f1b0d22-fb53-46ac-892a-f79486ffd0f8&interactionCount=2&landingPath=NotLandingPage&groups=C0001%3A1%2CC0003%3A1%2CC0004%3A1%2CC0002%3A1&AwaitingReconsent=false&geolocation=NL%3BNH',
-        '_gat_UA-162512367-1': '1',
-    }
-
-    headers = {
-        'authority': 'p2p.binance.com',
-        'accept': '*/*',
-        'accept-language': 'ru,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
-        'bnc-uuid': '6a10c4ff-d6bf-4f44-9584-f64e5c47f81a',
-        'c2ctype': 'c2c_merchant',
-        'cache-control': 'no-cache',
-        'clienttype': 'web',
-        'content-type': 'application/json',
-        'device-info': 'eyJzY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA4MCIsImF2YWlsYWJsZV9zY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA1MCIsInN5c3RlbV92ZXJzaW9uIjoiV2luZG93cyAxMCIsImJyYW5kX21vZGVsIjoidW5rbm93biIsInN5c3RlbV9sYW5nIjoicnUiLCJ0aW1lem9uZSI6IkdNVCsyIiwidGltZXpvbmVPZmZzZXQiOi0xMjAsInVzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTA3LjAuMC4wIFNhZmFyaS81MzcuMzYiLCJsaXN0X3BsdWdpbiI6IlBERiBWaWV3ZXIsQ2hyb21lIFBERiBWaWV3ZXIsQ2hyb21pdW0gUERGIFZpZXdlcixNaWNyb3NvZnQgRWRnZSBQREYgVmlld2VyLFdlYktpdCBidWlsdC1pbiBQREYiLCJjYW52YXNfY29kZSI6IjM2YmI1NmI4Iiwid2ViZ2xfdmVuZG9yIjoiR29vZ2xlIEluYy4gKEFNRCkiLCJ3ZWJnbF9yZW5kZXJlciI6IkFOR0xFIChBTUQsIFJhZGVvbiBSWCA1ODAgU2VyaWVzIERpcmVjdDNEMTEgdnNfNV8wIHBzXzVfMCwgRDNEMTEpIiwiYXVkaW8iOiIxMjQuMDQzNDc1Mjc1MTYwNzQiLCJwbGF0Zm9ybSI6IldpbjMyIiwid2ViX3RpbWV6b25lIjoiQWZyaWNhL1RyaXBvbGkiLCJkZXZpY2VfbmFtZSI6IkNocm9tZSBWMTA3LjAuMC4wIChXaW5kb3dzKSIsImZpbmdlcnByaW50IjoiNzlhZjg4YzZlYzExYzkzY2Y5ODlkNDU3M2RiZDYwY2QiLCJkZXZpY2VfaWQiOiIiLCJyZWxhdGVkX2RldmljZV9pZHMiOiIifQ==',
-        'fvideo-id': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
-        'lang': 'ru',
-        'origin': 'https://p2p.binance.com',
-        'pragma': 'no-cache',
-        'referer': 'https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=UAH',
-        'sec-ch-ua': '"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': fake_useragent.UserAgent().random ,
-        'x-trace-id': '0fb4de96-41cd-460e-92f5-e0c177488c1e',
-        'x-ui-request-trace': '0fb4de96-41cd-460e-92f5-e0c177488c1e',
-    }
-
-    json_data = {
-        'fiat': fiat,
-    }
-
-    response = requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/portal/config', cookies=cookies, headers=headers, json=json_data)
-
-    data = response.json()
-    
-    result_list = []
-
-    for item in data["data"]["areas"][0]['tradeSides'][0]["assets"]:
-        result_list.append(item["asset"])
-
-    return result_list
-       
-def write_available_chouice(select):
+def write_available_chouice(select, available_data):
     """
     write action(buy or sell)--> 'action'
     
@@ -406,7 +230,7 @@ def write_available_chouice(select):
         print("\n")
     if select == "bank":
         print("_" * 96 + "\n")
-        G_2 = Fore.GREEN     #Style for change colors
+        G_2 = G    #Style for change colors
         
         index1 = 0
         index2 = 1
@@ -440,11 +264,11 @@ def write_available_chouice(select):
         
         print("\n", S_b)
 
-def user_сhoice():
-    
+
+def user_сhoice(available_data):
     #action
     while True:
-        write_available_chouice("action")
+        write_available_chouice("action", available_data)
         try: 
             select_action = int(input(" Select an action: ")) - 1
             if select_action <= len(available_data['action'])-1 and select_action >= 0:
@@ -453,10 +277,12 @@ def user_сhoice():
                 print(f'{R} ERORR{W}'); time.sleep(0.70)
         except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
+            
+    parsing.set_available_data("action", available_data["action"][select_action])
     
     #fiat   
     while True:
-        write_available_chouice("fiat")
+        write_available_chouice("fiat", available_data)
         try:
             select_fiat = int(input(" Select the fiat to be parsed: ")) - 1
             if select_fiat <= len(available_data["fiat"])-1 and select_fiat >= 0:
@@ -466,12 +292,15 @@ def user_сhoice():
         except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
     
-    available_data['asset'] = get_available_assets(available_data["fiat"][select_fiat])  #adding a availavle_data of asset selections
-    available_data['bank'] = get_bank_for_currency(available_data['fiat'][select_fiat])  #adding a bank of fiat selections
+    parsing.parsing_asset(available_data["fiat"][select_fiat])  
+    
+    parsing.parsing_bank(available_data["fiat"][select_fiat])
+    parsing.set_available_data("fiat", available_data["fiat"][select_fiat])
+    
     
     #asset
     while True:
-        write_available_chouice("asset")
+        write_available_chouice("asset", available_data)
         try:
             select_asset = int(input(" Select the asset to be parsed: ")) - 1
             if select_asset <= len(available_data["asset"])-1 and select_asset >= 0:
@@ -481,9 +310,11 @@ def user_сhoice():
         except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
     
+    parsing.set_available_data("asset", available_data["asset"][select_asset])
+    
     #bank     
     while True:
-        for_check_on_digit = write_available_chouice("bank")
+        for_check_on_digit = write_available_chouice("bank", available_data)
         try:
             if for_check_on_digit == None:
                 select_bank = int(input(" Select the bank to be parsed: ")) - 1
@@ -499,11 +330,8 @@ def user_сhoice():
                     print(f'{R} ERORR{W}'); time.sleep(0.70)
         except:
             print(f'{R} ERORR{W}'); time.sleep(0.70)
-            
-        
-    selected = [available_data["action"][select_action], available_data["fiat"][select_fiat], available_data["asset"][select_asset], available_data["bank"][select_bank]]    #place the selected item on the list to return
-    return selected     #returns a list with the selected 
-
+      
+    parsing.set_available_data("bank", available_data["bank"][select_bank])
 def print_offers(list_with_result, list_with_data):
     action  = list_with_data[0]
     fiat = list_with_data[1]
