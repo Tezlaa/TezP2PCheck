@@ -2,7 +2,7 @@ import time, os
 import requests
 import fake_useragent
 
-# os.system("mode con cols=96 lines=60")
+os.system("mode con cols=96 lines=60")
 
 """Style"""
 R = '\x1b[31m'
@@ -25,11 +25,13 @@ class P2parser:
             "asset": None, 
             "bank" : None, 
         }
+        
+        self.__result_exchange_rate = []
     
     def parsing_asset(self, fiat):
         data_asset = self.__list_with_data('asset',self.available_data["action"], fiat)
-        cookies = data_asset[0]
-        headers = data_asset[1]
+        cookies   = data_asset[0]
+        headers   = data_asset[1]
         json_data = data_asset[2]
         
         response = requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/portal/config', cookies=cookies, headers=headers, json=json_data)
@@ -45,8 +47,8 @@ class P2parser:
             
     def parsing_bank(self, fiat):
         data_bank = self.__list_with_data('bank', self.available_data["action"], fiat)
-        cookies = data_bank[0]
-        headers = data_bank[1]
+        cookies   = data_bank[0]
+        headers   = data_bank[1]
         json_data = data_bank[2]
         
         response = requests.post('https://p2p.binance.com/bapi/c2c/v2/public/c2c/adv/filter-conditions', cookies=cookies, headers=headers, json=json_data)
@@ -59,7 +61,21 @@ class P2parser:
             banks.append(bank["identifier"])
             
         self.available_data["bank"] = banks
-              
+    
+    def parsing_price(self):
+        
+        data_price = self.__list_with_data("all", self.available_data["action"], self.available_data["fiat"], self.available_data["asset"], self.available_data["bank"])
+        cookies   = data_price[0]
+        headers   = data_price[1]
+        json_data = data_price[2]
+        
+        response = requests.post('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', cookies=cookies, headers=headers, json=json_data)
+        
+        response_json = response.json()["data"]
+        
+        for data in response_json:
+            self.__result_exchange_rate.append([[data["adv"]["price"]], [data["adv"]["minSingleTransAmount"]], [data["adv"]["dynamicMaxSingleTransAmount"]]])
+                     
     def set_available_data(self, data, choice):
         """
         data  --> 'action', 'fiat', 'asset', 'bank'\n                 
@@ -71,6 +87,9 @@ class P2parser:
          
     def get_available_data(self):
         return self.available_data
+    
+    def get_result_parsing(self):
+        return self.__result_exchange_rate
     
     @classmethod
     def __all_fiat(self):
@@ -106,7 +125,7 @@ class P2parser:
     
     @classmethod
     def __list_with_data(self, method, action="BUY", fiat="UAH", asset="USDT", bank="Monobank"):
-        """method --> 'action', 'fiat', 'asset', 'bank',"""
+        """method --> 'action', 'fiat', 'asset', 'bank', 'all'"""
         
         self.method = method
         
@@ -177,12 +196,12 @@ class P2parser:
         }
             
         
-        if self.method in "fiat":
+        if self.method == "fiat":
             return [cookies, headers]
-        elif self.method in "asset":
+        elif self.method == "asset" or self.method == "bank" or self.method == "all" :
             return [cookies, headers, json_data]
-        elif self.method in "bank":
-            return [cookies, headers, json_data]
+        else:
+            raise ValueError("write one with method ('action', 'fiat', 'asset', 'bank', 'all')")
 
 
 def write_available_chouice(select, available_data):
@@ -264,10 +283,11 @@ def write_available_chouice(select, available_data):
         
         print("\n", S_b)
 
-
 def user_сhoice(available_data):
     #action
     while True:
+        print(S_b)
+        
         write_available_chouice("action", available_data)
         try: 
             select_action = int(input(" Select an action: ")) - 1
@@ -293,8 +313,8 @@ def user_сhoice(available_data):
             print(f'{R} ERORR{W}'); time.sleep(0.70)
     
     parsing.parsing_asset(available_data["fiat"][select_fiat])  
-    
     parsing.parsing_bank(available_data["fiat"][select_fiat])
+    
     parsing.set_available_data("fiat", available_data["fiat"][select_fiat])
     
     
@@ -332,11 +352,17 @@ def user_сhoice(available_data):
             print(f'{R} ERORR{W}'); time.sleep(0.70)
       
     parsing.set_available_data("bank", available_data["bank"][select_bank])
+
 def print_offers(list_with_result, list_with_data):
-    action  = list_with_data[0]
-    fiat = list_with_data[1]
-    asset  = list_with_data[2]
-    bank = list_with_data[3]
+    
+    os.system('cls||clear')
+    print(f"{G}{S_b}\n\n  Loading...{W}\n\n"); time.sleep(0.80)
+    os.system('cls||clear')
+    
+    action  = list_with_data["action"]
+    fiat = list_with_data["fiat"]
+    asset  = list_with_data["asset"]
+    bank = list_with_data["bank"]
     
     os.system('cls||clear')
     
@@ -359,21 +385,11 @@ def print_offers(list_with_result, list_with_data):
                 print(f' {S_n}{i + 1}){S_b} {R + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
     
     print(M + "\n" + "_" * 96 + W)
-  
+
 if __name__=="__main__":
-    print(S_b)
-    
-    all_fiat = get_available_fiat()
     
     cycle_menu = True
     while cycle_menu == True:
-        available_data = {
-            "action": ["BUY", "SELL"],
-            "fiat" : all_fiat, 
-            "asset": None, 
-            "bank" : None, 
-        }
-        
         os.system('cls||clear')
         
         print(f'''{M}
@@ -386,10 +402,13 @@ if __name__=="__main__":
     ░░░╚═╝░░░╚══════╝╚══════╝╚═╝░░░░░╚══════╝╚═╝░░░░░░╚════╝░╚═╝░░╚═╝╚══════╝░╚════╝░╚═╝░░╚═╝
     {W}''')
         
-        user_selected = user_сhoice() 
+        parsing = P2parser()
         
-        parsing = Check_p2p_offers(user_selected[0], user_selected[1], user_selected[2], user_selected[3]) #put all the selected items into a class for parsing 
+        user_сhoice(parsing.get_available_data())
         
-        print_offers(parsing.return_result(), user_selected)
+        parsing.parsing_price()
+        
+        print_offers(parsing.get_result_parsing(), parsing.get_available_data())
         
         input(f'\n\n{R}  EXIT IN MENU {Bl}(type any key){W}')
+    
