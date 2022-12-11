@@ -75,7 +75,7 @@ class P2parser:
         
         for data in response_json:
             self.__result_exchange_rate.append([[data["adv"]["price"]], [data["adv"]["minSingleTransAmount"]], [data["adv"]["dynamicMaxSingleTransAmount"]]])
-                     
+                  
     def set_available_data(self, data, choice):
         """
         data  --> 'action', 'fiat', 'asset', 'bank'\n                 
@@ -84,10 +84,10 @@ class P2parser:
         for key in self.available_data:
             if key in data:
                 self.available_data[key] = choice
-         
+     
     def get_available_data(self):
         return self.available_data
-    
+      
     def get_result_parsing(self):
         return self.__result_exchange_rate
     
@@ -124,15 +124,15 @@ class P2parser:
         return result_fiat
     
     @classmethod
-    def __list_with_data(self, method, action="BUY", fiat="UAH", asset="USDT", bank="Monobank"):
+    def __list_with_data(cls, method, action="BUY", fiat="UAH", asset="USDT", bank="Monobank"):
         """method --> 'action', 'fiat', 'asset', 'bank', 'all'"""
         
-        self.method = method
+        cls.method = method
         
-        self.action = action
-        self.fiat = fiat
-        self.asset = asset
-        self.bank = bank
+        cls.action = action
+        cls.fiat = fiat
+        cls.asset = asset
+        cls.bank = bank
  
         cookies = {
             'cid': 'NVFN3uqS',
@@ -145,7 +145,7 @@ class P2parser:
             'BNC_FV_KEY': '337cf71aac3ea65386d236e9e74b41dbade0eaf0',
             'fiat-prefer-currency': 'EUR',
             'videoViewed': 'yes',
-            'common_fiat': self.fiat,
+            'common_fiat': cls.fiat,
             '_gid': 'GA1.2.789651845.1669128700',
             'BNC_FV_KEY_EXPIRE': '1669150304344',
             'showBlockMarket': 'false',
@@ -171,7 +171,7 @@ class P2parser:
             'lang': 'ru',
             'origin': 'https://p2p.binance.com',
             'pragma': 'no-cache',
-            'referer': 'https://p2p.binance.com/trade/'+ self.bank +'/'+ self.asset +'?fiat=' + self.fiat,
+            'referer': 'https://p2p.binance.com/trade/'+ cls.bank +'/'+ cls.asset +'?fiat=' + cls.fiat,
             'sec-ch-ua': '"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
@@ -187,18 +187,18 @@ class P2parser:
             'proMerchantAds': False,
             'page': 1,
             'rows': 10,
-            'payTypes': [self.bank, ],
+            'payTypes': [cls.bank, ],
             'countries': [],
             'publisherType': None,
-            'asset': self.asset,
-            'fiat': self.fiat,
-            'tradeType': self.action,
+            'asset': cls.asset,
+            'fiat': cls.fiat,
+            'tradeType': cls.action,
         }
             
         
-        if self.method == "fiat":
+        if cls.method == "fiat":
             return [cookies, headers]
-        elif self.method == "asset" or self.method == "bank" or self.method == "all" :
+        elif cls.method == "asset" or cls.method == "bank" or cls.method == "all" :
             return [cookies, headers, json_data]
         else:
             raise ValueError("write one with method ('action', 'fiat', 'asset', 'bank', 'all')")
@@ -206,12 +206,9 @@ class P2parser:
 
 def write_available_chouice(select, available_data):
     """
-    write action(buy or sell)--> 'action'
-    
-    write fiat--> 'fiat'
-    
-    write asset--> 'asset'
-    
+    write action(buy or sell)--> 'action'\n
+    write fiat--> 'fiat'\n
+    write asset--> 'asset'\n
     write bank--> 'bank'
     """
     
@@ -225,11 +222,8 @@ def write_available_chouice(select, available_data):
                 print(f' {2}-{R + available_data["action"][i] + W}', end=" ")
             
         print("\n")
-    
     if select == "fiat":
         print("_" * 96 + "\n")
-        
-        favorite_currency = ["USD", "EUR", "UAH", "RUB", "JPY", "CNY", "GBP"]
         
         for i in range(len(available_data["fiat"])):
             if i < 7:
