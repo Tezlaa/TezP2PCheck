@@ -1,7 +1,9 @@
-import time
 import os
-import requests
+import time
+
 import fake_useragent
+
+import requests
 
 os.system("mode con cols=96 lines=60")
 
@@ -71,7 +73,11 @@ class P2parser:
     def parsing_price(self) -> None:
 
         data_price = self.__list_with_data(
-            "all", self.available_data["action"], self.available_data["fiat"], self.available_data["asset"], self.available_data["bank"])
+            "all",
+            self.available_data["action"],
+            self.available_data["fiat"],
+            self.available_data["asset"],
+            self.available_data["bank"])
         cookies = data_price[0]
         headers = data_price[1]
         json_data = data_price[2]
@@ -83,7 +89,8 @@ class P2parser:
 
         for data in response_json:
             self.__result_exchange_rate.append([[data["adv"]["price"]], [
-                                               data["adv"]["minSingleTransAmount"]], [data["adv"]["dynamicMaxSingleTransAmount"]]])
+                                               data["adv"]["minSingleTransAmount"]],
+                                                [data["adv"]["dynamicMaxSingleTransAmount"]]])
 
     def set_available_data(self, data, choice) -> None:
         """
@@ -101,8 +108,8 @@ class P2parser:
         return self.__result_exchange_rate
 
     @classmethod
-    def __all_fiat(self) -> list:
-        data_fiat = self.__list_with_data('fiat')
+    def __all_fiat(cls) -> list:
+        data_fiat = cls.__list_with_data('fiat')
         cookies = data_fiat[0]
         headers = data_fiat[1]
 
@@ -262,12 +269,12 @@ def user_сhoice(available_data) -> None:
         write_available_chouice("action", available_data)
         try:
             select_action = int(input(" Select an action: ")) - 1
-            if select_action <= len(available_data['action'])-1 and select_action >= 0:
+            if select_action <= len(available_data['action']) -1 and select_action >= 0:
                 break
             else:
                 print(f'{R} ERORR{W}')
                 time.sleep(0.70)
-        except:
+        except Exception:
             print(f'{R} ERORR{W}')
             time.sleep(0.70)
 
@@ -284,7 +291,7 @@ def user_сhoice(available_data) -> None:
             else:
                 print(f'{R} ERORR{W}')
                 time.sleep(0.70)
-        except:
+        except Exception:
             print(f'{R} ERORR{W}')
             time.sleep(0.70)
 
@@ -303,7 +310,7 @@ def user_сhoice(available_data) -> None:
             else:
                 print(f'{R} ERORR{W}')
                 time.sleep(0.70)
-        except:
+        except Exception:
             print(f'{R} ERORR{W}')
             time.sleep(0.70)
 
@@ -327,7 +334,7 @@ def user_сhoice(available_data) -> None:
                 else:
                     print(f'{R} ERORR{W}')
                     time.sleep(0.70)
-        except:
+        except Exception:
             print(f'{R} ERORR{W}')
             time.sleep(0.70)
 
@@ -376,7 +383,7 @@ def print_offers(list_with_result, list_with_data) -> None:
 if __name__ == "__main__":
 
     cycle_menu = True
-    while cycle_menu == True:
+    while cycle_menu:
         os.system('cls||clear')
 
         print(f'''{M}
