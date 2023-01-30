@@ -5,6 +5,8 @@ from aiogram.dispatcher.filters import Text
 
 async def go_to_menu(msg: types.Message | types.CallbackQuery, state: FSMContext):
     await state.finish()
+    
+    # check on type message
     if type(msg) == types.CallbackQuery:
         msg = msg.message
     await msg.answer(msg.text)
