@@ -32,7 +32,7 @@ class P2parser:
 
         self.__result_exchange_rate = []
 
-    def parsing_asset(self, fiat) -> list:
+    def parsing_asset(self, fiat) -> None:
         data_asset = self.__list_with_data(
             'asset', self.available_data["action"], fiat)
         cookies = data_asset[0]
@@ -94,8 +94,8 @@ class P2parser:
 
     def set_available_data(self, data, choice) -> None:
         """
-        data  --> 'action', 'fiat', 'asset', 'bank'\n                 
-        choice --> user selection    
+        data  --> 'action', 'fiat', 'asset', 'bank'\n                
+        choice --> user selection
         """
         for key in self.available_data:
             if key in data:
@@ -269,7 +269,7 @@ def user_сhoice(available_data) -> None:
         write_available_chouice("action", available_data)
         try:
             select_action = int(input(" Select an action: ")) - 1
-            if select_action <= len(available_data['action']) -1 and select_action >= 0:
+            if select_action <= len(available_data['action']) - 1 and select_action >= 0:
                 break
             else:
                 print(f'{R} ERORR{W}')
@@ -365,17 +365,29 @@ def print_offers(list_with_result, list_with_data) -> None:
         if action == "BUY":
             if i + 1 == 10:
                 print(
-                    f' {S_n}{i + 1}){S_b}{G + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
+                    f' {S_n}{i + 1}){S_b}{G + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}'
+                    f'{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} '
+                    f'{", ".join(map(str, list_with_result[i][1]))} - '
+                    f'{Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
             else:
                 print(
-                    f' {S_n}{i + 1}){S_b} {G + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
+                    f' {S_n}{i + 1}){S_b} {G + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}'
+                    f'{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} '
+                    f'{", ".join(map(str, list_with_result[i][1]))} - '
+                    f'{Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
         else:
             if i + 1 == 10:
                 print(
-                    f' {S_n}{i + 1}){S_b}{R + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
+                    f' {S_n}{i + 1}){S_b}{R + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}'
+                    f'{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} '
+                    f'{", ".join(map(str, list_with_result[i][1]))} - '
+                    f'{Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
             else:
                 print(
-                    f' {S_n}{i + 1}){S_b} {R + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} {", ".join(map(str, list_with_result[i][1]))} - {Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
+                    f' {S_n}{i + 1}){S_b} {R + action + W} Offer({S_n}{Y}{bank}{S_b}{W}): {C}1-{asset + W} = {M}'
+                    f'{", ".join(map(str, list_with_result[i][0]))} {G + fiat + W} {B}\t|{S_n + W} '
+                    f'{", ".join(map(str, list_with_result[i][1]))} - '
+                    f'{Y + ", ".join(map(str, list_with_result[i][2])) + W} {G + fiat + W + S_b}')
 
     print(M + "\n" + "_" * 96 + W)
 
