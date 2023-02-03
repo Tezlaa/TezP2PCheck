@@ -1,5 +1,5 @@
-*.bat
-*.csv
+*bat
+*csv
 __pycache__
 venv
-.vscode
+*vscode
